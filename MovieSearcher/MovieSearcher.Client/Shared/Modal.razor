@@ -1,0 +1,26 @@
+﻿@if (Visible)
+{
+    <!-- BACKDROP SIBLING -->
+    <div class="modal-backdrop" @onclick="Close">
+    </div>
+
+    <!-- DIALOG SIBLING -->
+    <div class="modal-overlay">
+        <div class="modal-dialog modal-content">
+            <button @onclick="Close" class="closeBtn" >X</button>
+            @ChildContent
+        </div>
+    </div>
+}
+@code {
+    bool Visible { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    public void Show() => Visible = true;
+    public void Close()
+    {
+        Visible = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,115 @@
+﻿@page "/searchbar"
+@page "/"
+@using DataBase
+@using MovieSearcher.Client.Shared
+@using MovieSearcher.SharedModels
+@using System.Text.Json
+@rendermode InteractiveWebAssembly
+@inject HttpClient Http
+@inject SearchHistory History;
+
+<PageTitle>SearchBar</PageTitle>
+
+<div class="row">
+    <div class="col-3">
+        <input placeholder="Enter title" @bind="Query" type="search" />
+
+        <button @onclick="OnFind" disabled="@Disabled" >Find</button>
+    </div>
+    <div class="col">
+        @if (History.GetHistory().Any())
+        {
+            <div class="card">
+                <div class="row">
+                    @foreach (var m in History.GetHistory())
+                    {
+                        var movie = JsonSerializer.Deserialize<MovieDto>(m,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                        <div class="col-sm-6 col-md-4">
+                            <MovieCard Movie="movie" OnClick="ShowDetails" />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<Modal @ref="DetailsModal">
+    @if (Selected != null)
+    {
+        <h4>@Selected.Title (@Selected.Year)</h4>
+        <div class="card">
+            <div class="row">
+                <div class="col-3">
+                    <img src="@Selected.Poster" class="img-fluid mb-2" />
+                </div>
+                <div class="col-8">
+                    <ul>
+                        <li><strong>Director:</strong> @Selected.Director</li>
+                        <li><strong>Actors:</strong> @Selected.Actors</li>
+                        <li><strong>Writers:</strong> @Selected.Writer</li>
+                        <li><strong>Rating:</strong> @Selected.imdbRating</li>
+                    </ul>
+                    <p>@Selected.Plot</p>
+                </div>
+            </div>
+        </div>
+    }
+</Modal>
+
+@code {
+    private string Query { get; set; }
+    private bool Disabled = false;
+    private MovieDto? Selected;
+    private Modal DetailsModal = default!; //!!
+    private async Task OnFind()
+    {
+        if (string.IsNullOrEmpty(Query))
+        {
+            return;
+        }
+
+        Disabled = true;
+        try
+        {
+            var movieJson = await Http.GetStringAsync(
+                $"/api/movies?title={Uri.EscapeDataString(Query)}");
+
+            await History.AddAsync(movieJson);
+        }
+        catch (Exception ex)
+        {
+            // TODO: показать пользователю ошибку
+            Console.Error.WriteLine(ex);
+        }
+        finally
+        {
+            Disabled = false;
+            Query = string.Empty;
+        }
+    }
+
+    private void ShowDetails(MovieDto movie)
+    {
+        Selected = movie;
+        DetailsModal.Show();
+    }
+
+    private bool _historyLoaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await History.InitializeAsync();
+            _historyLoaded = true;
+            StateHasChanged();
+        }
+    }
+
+}
+

@@ -1,0 +1,14 @@
+﻿@using MovieSearcher.SharedModels
+@using Microsoft.AspNetCore.Components
+
+<figure class="card p-2" @onclick="() => OnClick.InvokeAsync(Movie)">
+  <img src="@Movie.Poster" class="card-img-top" alt="@Movie.Title" />
+  <figcaption class="card-body">
+    <h5 class="card-title">@Movie.Title (@Movie.Year)</h5>
+  </figcaption>
+</figure>
+
+@code {
+  [Parameter, EditorRequired] public MovieDto Movie { get; set; } = default!;
+  [Parameter] public EventCallback<MovieDto> OnClick { get; set; }
+}
