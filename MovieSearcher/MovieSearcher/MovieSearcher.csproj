@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\DataBase\DataBase.csproj" />
+    <ProjectReference Include="..\..\Services\Services.csproj" />
     <ProjectReference Include="..\..\SharedModels\SharedModels.csproj" />
     <ProjectReference Include="..\MovieSearcher.Client\MovieSearcher.Client.csproj" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
